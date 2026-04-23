@@ -1,7 +1,7 @@
 from fastapi import FastAPI, UploadFile, File
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
-from rembg import remove
+from rembg import remove, new_session
 import io
 
 app = FastAPI()
@@ -15,6 +15,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ✅ Create session ONCE (important)
+session = new_session()
+
 @app.get("/")
 def home():
     return {"message": "AI Background Remover Running"}
@@ -24,7 +27,7 @@ async def remove_bg(file: UploadFile = File(...)):
     try:
         input_data = await file.read()
 
-        output_data = remove(input_data)
+        output_data = remove(input_data, session=session)
 
         return StreamingResponse(
             io.BytesIO(output_data),
